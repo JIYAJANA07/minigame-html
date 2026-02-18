@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Memory Card Flip Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <h1>🧠 Memory Card Flip Game</h1>
+</header>
+
+<main>
+
+  
+    <section id="start-screen" class="screen active">
+        <h2>Welcome Player!</h2>
+        <button id="start-btn">Start Game</button>
+    </section>
+
+   
+    <section id="game-screen" class="screen">
+
+        <div class="scoreboard">
+            <div>Moves: <span id="moves">0</span></div>
+            <div>Time: <span id="timer">0</span>s</div>
+            <button id="restart-btn">Restart</button>
+        </div>
+
+        <div class="progress-bar">
+            <div class="progress"></div>
+        </div>
+
+        <div class="card-grid" id="card-grid"></div>
+
+    </section>
+
+  
+    <section id="game-over" class="screen">
+        <h2>🎉 You Won!</h2>
+        <p>Total Moves: <span id="final-moves"></span></p>
+        <p>Total Time: <span id="final-time"></span>s</p>
+        <button id="play-again">Play Again</button>
+    </section>
+
+</main>
+
+<footer>
+    <p>© 2026 Memory Game</p>
+</footer>
+
+<script>
+const startBtn = document.getElementById("start-btn");
+const restartBtn = document.getElementById("restart-btn");
+const playAgainBtn = document.getElementById("play-again");
+
+const startScreen = document.getElementById("start-screen");
+const gameScreen = document.getElementById("game-screen");
+const gameOverScreen = document.getElementById("game-over");
+
+const cardGrid = document.getElementById("card-grid");
+const movesText = document.getElementById("moves");
+const timerText = document.getElementById("timer");
+const progressBar = document.querySelector(".progress");
+
+const finalMoves = document.getElementById("final-moves");
+const finalTime = document.getElementById("final-time");
+
+let cardsArray = ["🤪","🤪","🥰","🥰","🙂‍↔️","🙂‍↔️","😎","😎"];
+let flippedCards = [];
+let moves = 0;
+let matched = 0;
+let timer = 0;
+let interval;
+
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5);
+}
+
+function startGame() {
+    startScreen.classList.remove("active");
+    gameScreen.classList.add("active");
+    resetGame();
+    createCards();
+    startTimer();
+}
+
+function resetGame() {
+    cardGrid.innerHTML = "";
+    flippedCards = [];
+    moves = 0;
+    matched = 0;
+    timer = 0;
+    movesText.textContent = 0;
+    timerText.textContent = 0;
+    progressBar.style.width = "0%";
+    clearInterval(interval);
+}
+
+function createCards() {
+    let shuffled = shuffle(cardsArray);
+
+    shuffled.forEach(symbol => {
+        const card = document.createElement("div");
+        card.classList.add("card");
+        card.dataset.value = symbol;
+
+        card.innerHTML = `
+            <div class="card-inner">
+                <div class="card-front">?</div>
+                <div class="card-back">${symbol}</div>
+            </div>
+        `;
+
+        card.addEventListener("click", () => flipCard(card));
+        cardGrid.appendChild(card);
+    });
+}
+
+function flipCard(card) {
+    if (flippedCards.length === 2 || card.classList.contains("flipped")) return;
+
+    card.classList.add("flipped");
+    flippedCards.push(card);
+
+    if (flippedCards.length === 2) {
+        moves++;
+        movesText.textContent = moves;
+        checkMatch();
+    }
+}
+
+function checkMatch() {
+    const [card1, card2] = flippedCards;
+
+    if (card1.dataset.value === card2.dataset.value) {
+        matched++;
+        card1.classList.add("match");
+        card2.classList.add("match");
+        updateProgress();
+        flippedCards = [];
+
+        if (matched === cardsArray.length / 2) {
+            endGame();
+        }
+    } else {
+        setTimeout(() => {
+            card1.classList.remove("flipped");
+            card2.classList.remove("flipped");
+            flippedCards = [];
+        }, 800);
+    }
+}
+
+function updateProgress() {
+    let percent = (matched / (cardsArray.length / 2)) * 100;
+    progressBar.style.width = percent + "%";
+}
+
+function startTimer() {
+    interval = setInterval(() => {
+        timer++;
+        timerText.textContent = timer;
+    }, 1000);
+}
+
+function endGame() {
+    clearInterval(interval);
+    gameScreen.classList.remove("active");
+    gameOverScreen.classList.add("active");
+    finalMoves.textContent = moves;
+    finalTime.textContent = timer;
+}
+
+startBtn.addEventListener("click", startGame);
+restartBtn.addEventListener("click", startGame);
+playAgainBtn.addEventListener("click", startGame);
+</script>
+
+</body>
+</html>
